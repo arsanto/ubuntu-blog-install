@@ -6,7 +6,8 @@ DATE=$(date +"%Y%m%d")
 
 # Location of your backups (create the directory first!)
 
-BACKUP_DIR="/var/www/db"
+#BACKUP_DIR="/var/www/db"
+BACKUP_DIR="/www/wwwroot/db"
 
 # MySQL login details
 
