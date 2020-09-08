@@ -1,0 +1,122 @@
+#Sets up default LEMP Stack on Ubuntu (16.04x64) with Nginx, MySql 5.5, PHP-FPM 7.4
+#Minimal OS
+
+
+#update everything
+apt-get -y remove --purge -y apache2* apache* php* mysql* ubuntu-release-upgrader-core landscape-common
+apt-get update
+apt-get install software-properties-common python-software-properties -y
+sudo locale-gen en_US.UTF-8
+export LANG=en_US.UTF-8
+apt-add-repository ppa:ondrej/php -y
+apt-get update
+
+
+#install php
+apt-get -y install unzip zip nginx fail2ban htop php7.4 php7.4-common php7.4-cli php7.4-zip php7.4-opcache php7.4-mysql php7.4-mbstring php7.4-json php7.4-intl php7.4-gd php7.4-fpm php7.4-curl php7.4-bz2 php7.4-bcmath php7.4-imap php7.4-recode php7.4-soap php7.4-xml php7.4-imagick php7.4-memcache php7.4-memcached php7.4-igbinary php7.4-msgpack php7.4-redis
+
+#configure nginx
+#more advanced configuration options and plugin info available here: https://rtcamp.com/wordpress-nginx/tutorials/single-site/fastcgi-cache-with-purging/
+#mkdir /usr/share/nginx/cache
+#mkdir /usr/share/nginx/www
+rm -rf /var/www/html
+
+
+sed -i "s/^memory_limit = 128M/memory_limit = 512M/" /etc/php/7.4/fpm/php.ini
+
+sed -i "s/^pm.max_children = 5/pm.max_children = 100/" /etc/php/7.4/fpm/pool.d/www.conf
+
+sed -i "s/^pm.start_servers = 2/pm.start_servers = 20/" /etc/php/7.4/fpm/pool.d/www.conf
+
+sed -i "s/^pm.min_spare_servers = 1/pm.min_spare_servers = 10/" /etc/php/7.4/fpm/pool.d/www.conf
+
+sed -i "s/^pm.max_spare_servers = 3/pm.max_spare_servers = 30/" /etc/php/7.4/fpm/pool.d/www.conf
+
+sed -i "s/^request_terminate_timeout = 0/request_terminate_timeout = 300/" /etc/php/7.4/fpm/pool.d/www.conf
+
+sed -i "s/^;pm.max_requests = 500/pm.max_requests = 500/" /etc/php/7.4/fpm/pool.d/www.conf
+
+
+
+cat /dev/null > /etc/nginx/sites-available/default
+
+cat << EOF | tee -a /etc/nginx/sites-available/default
+server {
+	listen 80;
+
+	root /var/www;
+	index index.php;
+	server_name _;
+
+	gzip on;
+    	gzip_vary on;
+    	gzip_disable "msie6";
+    	gzip_comp_level 6;
+    	gzip_min_length 1100;
+    	gzip_buffers 16 8k;
+    	gzip_proxied any;
+    	gzip_types
+        text/plain
+        text/css
+        text/js
+        text/xml
+        text/javascript
+        application/javascript
+        application/x-javascript
+        application/json
+        application/xml
+        application/xml+rss;
+	
+	
+location / {
+        try_files \$uri \$uri/ /index.php?\$args;
+
+    }
+    
+location ~ \.php\$ {
+        try_files \$uri /index.php =404;
+        fastcgi_split_path_info ^(.+\.php)(/.+)\$;
+        fastcgi_pass unix:/run/php/php7.4-fpm.sock;
+        fastcgi_index index.php;
+        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
+        include fastcgi_params;
+    }
+    
+location ~* \.(?:jpg|jpeg|gif|png|ico|cur|gz|svg|svgz|mp4|ogg|ogv|webm|htc|svg|woff|woff2|ttf)\$ {
+      expires 1M;
+      access_log off;
+      add_header Cache-Control "public";
+    }
+location ~* \.(?:css|js)\$ {
+      expires 7d;
+      access_log off;
+      add_header Cache-Control "public";
+    }
+location ~ /\.ht {
+        deny  all;
+    }
+    
+}
+EOF
+
+
+
+
+
+
+wget https://raw.githubusercontent.com/arsanto/ubuntu-blog-install/master/blacklist.conf -O /etc/nginx/conf.d/blacklist.conf
+wget https://raw.githubusercontent.com/arsanto/ubuntu-blog-install/master/conf/jail.local -O /etc/fail2ban/jail.local
+wget https://raw.githubusercontent.com/arsanto/ubuntu-blog-install/master/conf/nginx-req-limit.conf -O /etc/fail2ban/filter.d/nginx-req-limit.conf
+
+#just restarting to make sure they have latest
+service nginx restart
+service php7.4-fpm restart
+service fail2ban restart
+fail2ban-client status nginx-req-limit
+
+sudo cat > /var/www/index.php <<END
+<?php
+phpinfo();
+?>
+END
+I166KSummary reportDiagnosisDensity00n/a
