@@ -211,3 +211,8 @@ wget --no-check-certificate https://raw.githubusercontent.com/arsanto/ubuntu-blo
 
 
 wget --no-check-certificate https://raw.githubusercontent.com/arsanto/ubuntu-blog-install/master/ubuntu16-php73 && chmod +x ubuntu16-php73 && ./ubuntu16-php73
+
+
+#lemp php7.4
+
+wget --no-check-certificate https://raw.githubusercontent.com/arsanto/ubuntu-blog-install/master/ubuntu16-php74 && chmod +x ubuntu16-php74 && ./ubuntu16-php74
