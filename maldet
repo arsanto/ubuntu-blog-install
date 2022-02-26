@@ -14,3 +14,7 @@ apt-get install clamav clamav-daemon clamav-freshclam -y
 
 
 wget https://raw.githubusercontent.com/arsanto/ubuntu-blog-install/master/conf.maldet -O /usr/local/maldetect/conf.maldet
+
+
+
+maldet --include-regex ".*.php$" -a /www/wwwroot
